@@ -1,0 +1,423 @@
+# A collection of internal functions, taken from the package SpATS
+# They are needed to make the function SpATS.nogeno() work
+
+construct.capital.lambda <-
+function(g) {
+	length.eq <- all(sapply(g, function(x) {
+		 	diff(range(unlist(lapply(x, length)))) < .Machine$double.eps ^ 0.5
+		}))
+	if(length.eq) {
+		l <- length(g)
+		if(l == 1) {
+			if(length(g[[1]]) == 1) {
+				res <- g
+			 } else {
+			 	res <- do.call("c", lapply(g, function(x) x))
+			 }
+		} else {
+			dim <- sapply(g, function(x) {
+				if(is.list(x))
+		 			unlist(lapply(x, length))[1]
+		 		else
+		 			length(x)
+			})
+			end <- cumsum(dim)
+			init <- end - dim + 1
+
+			res <- do.call("c", lapply(1:length(g), function(x, g, init, end, dim) {
+				temp <- g[[x]]
+				if(is.list(temp)) {
+					lapply(temp, function(y, x, dim) {
+						aux <- rep(0, l = sum(dim))
+						aux[init[x]:end[x]] <- y
+						aux
+					}, x = x, dim = dim)
+				} else {
+					aux <- rep(0, l = sum(dim))
+					aux[init[x]:end[x]] <- temp
+					list(aux)
+				}
+			}, g = g, init = init, end = end, dim = dim))
+		}
+	} else {
+		stop("Error in construct.capital.lambda")
+	}
+	res
+}
+
+# ---------------------------------------
+
+construct.fixed.part <-
+function(formula, data) {
+	env <- environment(formula)
+	if(inherits(formula, "character"))
+		formula <- as.formula(formula)
+
+	mf <- model.frame(formula, data, drop.unused.levels = TRUE)
+	mt <- terms(mf)
+	X <- model.matrix(mt, mf)
+
+	dim <- table(attr(X,"assign"))[-1]
+	names(dim) <- attr(mt, "term.labels")
+
+	attr(mt, "contrast") <- attr(X,"contrast")
+	attr(mt, "xlev") <- .getXlevels(mt, mf)
+
+	# For prediction
+	# mfp <- model.frame(mt, newdata, xlev = attr(mt, "xlev"))
+	# Xp <- model.matrix(mt, data = mfp, contrasts.arg = attr(mt, "contrast"))
+
+	attr(dim, "random") <- attr(dim, "sparse") <- attr(dim, "spatial") <- rep(FALSE, length(dim))
+	res <- list(X = X[,-1, drop = FALSE], dim = dim, terms = mt)
+	res
+}
+
+# ---------------------------------------
+
+construct.random.part <-
+function(formula, data) {
+	env <- environment(formula)
+	if(inherits(formula, "character"))
+		formula <- as.formula(formula)
+
+    mf <- model.frame(formula, data, drop.unused.levels = TRUE, na.action = NULL)
+	mt <- terms(mf)
+	#f.terms <- attr(mt, "term.labels")[attr(mt,"dataClasses") == "factor"]
+	f.terms <- all.vars(mt)[attr(mt,"dataClasses") == "factor"]
+	Z <- model.matrix(mt, data = mf, contrasts.arg = lapply(mf[,f.terms, drop = FALSE], contrasts, contrasts = FALSE))
+	Z[is.na(Z)] <- 0
+
+	attr(mt, "contrast") <- attr(Z,"contrast")
+	attr(mt, "xlev") <- .getXlevels(mt, mf)
+
+	# For prediction
+	# mfp <- model.frame(mt, newdata, xlev = attr(mt, "xlev"))
+	# Xp <- model.matrix(mt, data = mfp, contrasts.arg = attr(mt, "contrast"))
+
+	dim <- table(attr(Z,"assign"))[-1]
+
+	e <- cumsum(dim)
+	s <- e - dim + 1
+
+	g <- list()
+	for(i in 1:length(dim)) {
+		g[[i]] <- rep(0,sum(dim))
+		g[[i]][s[i]:e[i]] <- 1
+	}
+	names(g) <- names(dim) <- attr(mt,"term.labels")
+	attr(dim, "random") <- rep(TRUE, length(dim))
+	attr(dim, "sparse") <- attr(dim, "spatial") <- rep(FALSE, length(dim))
+
+	# Initialize variance components
+	init.var <- rep(0.01, length(g))
+
+	res <- list(Z = Z[,-1, drop = FALSE], dim = dim, g = g, init.var = init.var, terms = mt)
+	res
+}
+
+# ---------------------------------------
+
+create.position.indicator <-
+function(dim, what) {
+    end.tot <- cumsum(dim)
+    init.tot <- end.tot - dim + 1
+
+    init <- init.tot[what]
+    end <- end.tot[what]
+
+    if((length(init) == 0 | is.null(init)) & (length(end) == 0 | is.null(end))) {
+        res <- NULL
+    } else if(length(init) != 0 & length(end) != 0) {
+        res <- unlist(sapply(1:length(init), function(i, init, end) {
+            res <- init[i]:end[i]
+            res
+        }, init = init, end = end))
+    } else {
+        stop("Error in create.position.indicator")
+    }
+    as.vector(res)
+}
+
+# ---------------------------------------
+
+get.attribute <-
+function(x, name) {
+	attr(x, name)
+}
+
+# ---------------------------------------
+
+obtain.nominal.dimension <- function(MM, dim, random., spatial., weights) {
+	MM <- as.matrix(MM)
+	MM <- MM[weights != 0,]
+	dim.nom <- dim
+	random <- which(random. == TRUE & spatial. == FALSE)
+	fixed.pos <- create.position.indicator(dim, !random.)
+
+	np.e <- cumsum(dim)
+	np.s <- np.e - dim + 1
+
+	X <- MM[,fixed.pos]
+
+	for(i in random) {
+		Z <- MM[,np.s[i]:np.e[i]]
+		#tst <- cbind(rowSums(Z), X)
+		dim.nom[i] =  qr(cbind(Z,X))$rank - qr(X)$rank #dim[i] - (ncol(tst) - qr(tst)$rank)
+	}
+	dim.nom
+}
+
+# ---------------------------------------
+
+interpret.SpATS.formula <-
+function(formula) {
+    env <- environment(formula)
+    if(inherits(formula, "character"))
+        formula <- as.formula(formula)
+    tf <- terms.formula(formula, specials = c("SAP", "PSANOVA"))
+    terms <- attr(tf, "term.labels")
+    nt <- length(terms)
+    if(nt != 1)
+    	stop("Error in the specification of the spatial effect: only a sigle bidimensional function is allowed")
+
+    res <- eval(parse(text = terms[1]), envir = env)
+    res
+}
+
+# ---------------------------------------
+
+construct.2d.pspline <-
+function(formula, data) {
+	env <- environment(formula)
+	if(inherits(formula, "character"))
+		formula <- as.formula(formula)
+
+	res <- interpret.SpATS.formula(formula)
+
+	x1 <- data[ ,res$x.coord]
+	x2 <- data[ ,res$y.coord]
+
+	type = res$type
+
+	MM1 = MM.basis(x1, min(x1), max(x1), res$nseg[1], res$degree[1], res$pord[1], 4)
+	MM2 = MM.basis(x2, min(x2), max(x2), res$nseg[2], res$degree[2], res$pord[2], 4)
+
+	X1 <- MM1$X; Z1 <- MM1$Z; d1 <- MM1$d; B1 <- MM1$B
+	X2 <- MM2$X; Z2 <- MM2$Z; d2 <- MM2$d; B2 <- MM2$B
+
+	c1 = ncol(B1); c2 = ncol(B2)
+
+	# Nested bases
+	if(res$nest.div[1] == 1) {
+		MM1n <- MM1
+		Z1n <- Z1
+		c1n <- c1
+		d1n <- d1
+	} else {
+		MM1n = MM.basis(x1, min(x1), max(x1), res$nseg[1]/res$nest.div[1], res$degree[1], res$pord[1], 4)
+		Z1n <- MM1n$Z
+		d1n <- MM1n$d
+		c1n <-  ncol(MM1n$B)
+	}
+	if(res$nest.div[2] == 1) {
+		MM2n <- MM2
+		Z2n <- Z2
+		c2n <- c2
+		d2n <- d2
+	} else {
+		MM2n = MM.basis(x2, min(x2), max(x2), res$nseg[2]/res$nest.div[2], res$degree[2], res$pord[2], 4)
+		Z2n <- MM2n$Z
+		d2n <- MM2n$d
+		c2n <-  ncol(MM2n$B)
+	}
+
+	x.fixed <- y.fixed <- ""
+	for(i in 0:(res$pord[1]-1)){
+		if(i == 1)
+			x.fixed <- c(x.fixed, res$x.coord)
+		else if( i > 1)
+			x.fixed <- c(x.fixed, paste(res$x.coord, "^", i, sep = ""))
+	}
+	for(i in 0:(res$pord[2]-1)){
+		if(i == 1)
+			y.fixed <- c(y.fixed, res$y.coord)
+		else if( i > 1)
+			y.fixed <- c(y.fixed, paste(res$y.coord, "^", i, sep = ""))
+	}
+	xy.fixed <- NULL
+	for(i in 1:length(y.fixed)) {
+		xy.fixed <- c(xy.fixed, paste(y.fixed[i], x.fixed, sep= ""))
+	}
+	xy.fixed <- xy.fixed[xy.fixed != ""]
+	names.fixed <- xy.fixed
+
+	smooth.comp <- paste("f(", res$x.coord,",", res$y.coord,")", sep = "")
+
+	if(type == "SAP") {
+		names.random <- paste(smooth.comp, c(res$x.coord, res$y.coord), sep = "|")
+		X = Rten2(X2, X1)
+		# Delete the intercept
+		X <- X[,-1,drop = FALSE]
+		Z = cbind(Rten2(X2, Z1), Rten2(Z2, X1), Rten2(Z2n, Z1n))
+
+		dim.random <- c((c1 -res$pord[1])*res$pord[2] , (c2 - res$pord[2])*res$pord[1], (c1n - res$pord[1])*(c2n - res$pord[2]))
+		dim <- list(fixed = rep(1, ncol(X)), random = sum(dim.random))
+		names(dim$fixed) <- names.fixed
+		names(dim$random) <- paste(smooth.comp, "Global")
+
+		# Variance/Covariance components
+		g1u <- rep(1, res$pord[2])%x%d1
+		g2u <- d2%x%rep(1, res$pord[1])
+		g1b <- rep(1, c2n - res$pord[2])%x%d1n
+		g2b <- d2n%x%rep(1, c1n - res$pord[1])
+
+		g <- list()
+		g[[1]] <- c(g1u, rep(0, dim.random[2]), g1b)
+		g[[2]] <- c(rep(0, dim.random[1]), g2u, g2b)
+
+		names(g) <- names.random
+
+	} else {
+		one1. <- X1[,1, drop = FALSE]
+		one2. <- X2[,1, drop = FALSE]
+
+		x1. <- X1[,-1, drop = FALSE]
+		x2. <- X2[,-1, drop = FALSE]
+
+		# Fixed and random matrices
+		X <- Rten2(X2, X1)
+		# Delete the intercept
+		X <- X[,-1,drop = FALSE]
+		Z <- cbind(Rten2(one2., Z1), Rten2(Z2, one1.), Rten2(x2., Z1), Rten2(Z2, x1.), Rten2(Z2n, Z1n))
+
+		dim.random <- c((c1-res$pord[1]), (c2-res$pord[2]), (c1-res$pord[1])*(res$pord[2]-1), (c2-res$pord[2])*(res$pord[1]-1), (c1n-res$pord[2])*(c2n-res$pord[2]))
+
+		# Variance/Covariance components
+		g1u <- d1
+		g2u <- d2
+
+		g1v <- rep(1, res$pord[2] - 1)%x%d1
+		g2v <- d2%x%rep(1,res$pord[1] - 1)
+
+		g1b <- rep(1, c2n - res$pord[2])%x%d1n
+		g2b <- d2n%x%rep(1, c1n - res$pord[1])
+
+		g <- list()
+
+		if(type == "SAP.ANOVA") {
+			g[[1]] <- c(g1u, rep(0, sum(dim.random[2:5])))
+			g[[2]] <- c(rep(0, dim.random[1]), g2u, rep(0, sum(dim.random[3:5])))
+			g[[3]] <- c(rep(0, sum(dim.random[1:2])), g1v, rep(0, dim.random[4]), g1b)
+			g[[4]] <- c(rep(0, sum(dim.random[1:3])), g2v, g2b)
+
+			names.random <- c(paste("f(", res$x.coord,")", sep = ""), paste("f(", res$y.coord,")", sep = ""), paste(smooth.comp, c(res$x.coord, res$y.coord), sep = "|"))
+			dim <- list(fixed = rep(1, ncol(X)), random = c(dim.random[1:2], sum(dim.random[-(1:2)])))
+			names(dim$fixed) <- names.fixed
+			names(dim$random) <- c(names.random[1:2], paste(smooth.comp, "Global"))
+			names(g) <- names.random
+		} else {
+			g[[1]] <- c(g1u, rep(0, sum(dim.random[2:5])))
+			g[[2]] <- c(rep(0, dim.random[1]), g2u, rep(0, sum(dim.random[3:5])))
+			g[[3]] <- c(rep(0, sum(dim.random[1:2])), g1v, rep(0, sum(dim.random[4:5])))
+			g[[4]] <- c(rep(0, sum(dim.random[1:3])), g2v, rep(0, dim.random[5]))
+			g[[5]] <- c(rep(0, sum(dim.random[1:4])), g1b + g2b)
+
+			names.random <- c(paste("f(", res$x.coord,")", sep = ""), paste("f(", res$y.coord,")", sep = ""),
+							paste("f(", res$x.coord,"):", res$y.coord, sep = ""),
+							paste(res$x.coord,":f(", res$y.coord,")", sep = ""),
+							paste("f(", res$x.coord,"):f(", res$y.coord,")", sep = ""))
+
+			dim <- list(fixed = rep(1, ncol(X)), random = dim.random)
+			names(dim$fixed) <- names.fixed
+			names(dim$random) <- names.random
+			names(g) <- names.random
+		}
+	}
+	colnames(X) <- names.fixed
+	colnames(Z) <- paste(smooth.comp, 1:ncol(Z), sep = ".")
+
+	attr(dim$fixed, "random") <- attr(dim$fixed, "sparse") <- rep(FALSE, length(dim$fixed))
+	attr(dim$fixed, "spatial") <- rep(TRUE, length(dim$fixed))
+
+	attr(dim$random, "random") <- attr(dim$random, "spatial") <- rep(TRUE, length(dim$random))
+	attr(dim$random, "sparse") <- rep(FALSE, length(dim$random))
+
+	terms <- list()
+	terms$MM <- list(MM1 = MM1, MM2 = MM2)
+	terms$MMn <- list(MM1 = MM1n, MM2 = MM2n)
+	terms$terms.formula <- res
+
+	attr(terms, "term") <- smooth.comp
+
+	# Initialize variance components
+	init.var <- rep(1, length(g))
+
+	res <- list(X = X, Z = Z, dim = dim, g = g, init.var = init.var, terms = terms)
+	res
+}
+
+# ---------------------------------------
+
+MM.basis <-
+function (x, xl, xr, ndx, bdeg, pord, decom = 1) {
+	Bb = spats_bbase(x,xl,xr,ndx,bdeg)
+	knots <- Bb$knots
+	B = Bb$B
+	m = ncol(B)
+	n = nrow(B)
+	D = diff(diag(m), differences=pord)
+	P.svd = svd(crossprod(D))
+	U.Z = (P.svd$u)[,1:(m-pord)] # eigenvectors
+	d = (P.svd$d)[1:(m-pord)]  # eigenvalues
+	Z = B%*%U.Z
+	U.X = NULL
+	if(decom == 1) {
+		U.X = ((P.svd$u)[,-(1:(m-pord))])
+		X = B%*%U.X
+	} else if (decom == 2){
+		X = NULL
+		for(i in 0:(pord-1)){
+			X = cbind(X,x^i)
+		}
+	} else if(decom == 3) {
+		U.X = NULL
+		for(i in 0:(pord-1)){
+			U.X = cbind(U.X,knots[-c((1:pord),(length(knots)- pord + 1):length(knots))]^i)
+		}
+		X = B%*%U.X
+	} else if(decom == 4) { # Wood's 2013
+		X = B%*%((P.svd$u)[,-(1:(m-pord))])
+		id.v <- rep(1, nrow(X))
+		D.temp = X - ((id.v%*%t(id.v))%*%X)/nrow(X)
+		Xf <- svd(crossprod(D.temp))$u[,ncol(D.temp):1]
+		X <- X%*%Xf
+		U.X = ((P.svd$u)[,-(1:(m-pord)), drop = FALSE])%*%Xf
+	}
+	list(X = X, Z = Z, d = d, B = B, m = m, D = D, knots = knots, U.X = U.X, U.Z = U.Z)
+}
+
+# ---------------------------------------
+
+Rten2 <-
+function(X1,X2) {
+	one.1 <- matrix(1,1,ncol(X1))
+	one.2 <- matrix(1,1,ncol(X2))
+	kronecker(X1,one.2)*kronecker(one.1,X2)
+}
+
+# ---------------------------------------
+
+spats_bbase <-
+function(X., XL., XR., NDX., BDEG.) {
+	# Function for B-spline basis
+    dx <- (XR. - XL.)/NDX.
+	knots <- seq(XL. - BDEG.*dx, XR. + BDEG.*dx, by=dx)
+    P <- outer(X., knots, tpower, BDEG.)
+    n <- dim(P)[2]
+    D <- diff(diag(n), diff = BDEG. + 1) / (gamma(BDEG. + 1) * dx ^ BDEG.)
+    B <- (-1) ^ (BDEG. + 1) * P %*% t(D)
+    res <- list(B = B, knots = knots)
+	res
+}
+
+

@@ -1,0 +1,55 @@
+#' Clone a B-spline basis for new x
+#'
+#' @description Extract basis parameters from an existing B-splines basis matrix,
+#' and use them for computing a new basis at new values of \code{x}.
+#'
+#' @param B a B-splines basis matrix, computed with \code{bbase()} or \code{cbase()}.
+#' @param x a vector of new argument values.
+#'
+#' @return A matrix with number of rows=\code{length(xnew)}.
+#'
+#' @details If values in \code{x} are outside the domain used for computing \code{B}, they will be discarded, with a warning.
+#'
+#' @author Paul Eilers
+#'
+#'
+#' @references Eilers, P.H.C. and Marx, B.D. (2021). \emph{Practical Smoothing, The Joys of
+#' P-splines.} Cambridge University Press.
+#' @references Eilers, P.H.C., Marx, B.D., and Durban, M.
+#' (2015). Twenty years of P-splines, \emph{SORT}, 39(2): 149-186.
+#'
+#' @examples
+#'
+#  set.seed(123)
+#' x = seq(0, 10, length = 20)
+#' n = length(x)
+#' y = sin(x / 2) + rnorm(n) * 0.2
+#' B = bbase(x)
+#' nb = ncol(B)
+#' D = diff(diag(nb), diff = 2)
+#' lambda = 1
+#' a = solve(t(B) %*% B + lambda * t(D)%*% D, t(B) %*% y)
+#' # Clone basis on finer grid
+#' xg = seq(0, 10, length = 200)
+#' Bg = clone_base(B, xg)
+#' yg = Bg %*% a
+#' plot(x, y)
+#' lines(xg, yg, col = 'blue')
+#'
+#' @export
+#'
+clone_base = function(B, x) {
+  funs = c('bbase', 'cbase', 'spbase')
+  att = attributes(B)
+  fun = att$type
+  if (!(fun %in% funs)) stop('Basis type ', fun, ' not in ', funs)
+  xl = att$xl
+  xr = att$xr
+  sel = which(x < xl | x > xr)
+  if (length(sel) > 0) {
+    x = x[-sel]
+    warning("Some elements of x outside the domain of B. They have been discarded.")
+  }
+  args = list(x = x, xl = xl, xr = xr, nseg = att$nseg, bdeg = att$bdeg)
+  Bnew  = do.call(fun, args)
+}
