@@ -90,6 +90,9 @@ SpATS.nogeno <- function(response, spatial, fixed = NULL,
 	weights.na <- weights[!na.ind]
 	offset.na <-  offset[!na.ind]
 
+	# NAs in the response
+	na.res <- is.na(data[,response])
+
 	y <- data.na[,response]
 	nobs <- length(y[weights.na != 0])
 
@@ -115,7 +118,7 @@ SpATS.nogeno <- function(response, spatial, fixed = NULL,
         gg <- c(gg, list(random.part$g))
         init.var <- c(init.var, list(rep(0.001, length(random.part$init.var))))
     }
-    spat.part <- construct.2d.pspline(formula = spatial, data = data)
+    spat.part <- construct.2d.pspline(formula = spatial, data = data, na.res = na.res)
     MMns <- cbind(MMns, spat.part$X, spat.part$Z)
     dim <- c(dim, list(spat.part$dim$fixed), list(spat.part$dim$random))
     gg <- c(gg, list(spat.part$g))

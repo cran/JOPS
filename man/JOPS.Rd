@@ -4,13 +4,13 @@
 
 \title{Joys of P-Splines}
 
-\description{A package for working with and learning about P-splines. P-splines combine B-splines with discrete penalties to build a very flexible and effective smooth models. They can handle non-normal dat in the style of generalized linear models.
+\description{A package for working with and learning about P-splines. P-splines combine B-splines with discrete penalties to build a very flexible and effective smooth models. They can handle non-normal data in the style of generalized linear models.
 
-This package provides functions for constructing B-splines bases and penalty matrices. It solves the penalized likelihood equations efficiently.
+This package provides functions for constructing B-spline bases and penalty matrices. It solves the penalized likelihood equations efficiently.
 
 Several methods are provided to determine the values of penalty  parameters automatically, using cross-validation, AIC, mixed models or fast Bayesian algorithms.
 
-This pacakge is a companion to the book by Eilers and Marx (2021). The book presents the underlying theory and contains many examples and the code \code{R} for each example is availableon the website \url{https://psplines.bitbucket.io}
+This package is a companion to the book by Eilers and Marx (2021). The book presents the underlying theory and contains many examples and the code \code{R} for each example is available on the website \url{https://psplines.bitbucket.io}
 
 }
 
