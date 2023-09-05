@@ -22,6 +22,6 @@
 #' @export
 
 tpower <- function(x, knot, p) {
-  (x - knot) ^ p * (x > knot)
+  (x - knot) ^ p * (x >= knot)
 }
 

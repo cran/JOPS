@@ -35,7 +35,7 @@
 #' @references R. Bro, Exploratory study of sugar production using fluorescence spectroscopy and multi-way analysis,
 #' \emph{Chemom. Intell. Lab. Syst.}, 1999, (46), 133-147.
 
-#' @source \url{ http://www.models.kvl.dk/Sugar_Process}
+#' @source \url{ https://ucphchemometrics.com/sugar-process-data/}
 #'
 #'
 "Sugar"

@@ -24,7 +24,7 @@ A list consisting of the following:
 \item{\code{DimProc}}{ }}
 }
 \source{
-\url{ http://www.models.kvl.dk/Sugar_Process}
+\url{ https://ucphchemometrics.com/sugar-process-data/}
 }
 \usage{
 data(Sugar)

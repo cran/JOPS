@@ -18,21 +18,14 @@
 \item{Resol}{resolution for plotting, default \code{Resol = 100}.}
 }
 \value{
-\item{Plot}{a plot of the estimated 2D P-spline signal coefficent surface along with the companion plot of the estimated
+\item{Plot}{a plot of the estimated 2D P-spline signal coefficient surface along with the companion plot of the estimated
 2D P-spline varying link function surface. Slices of these plots, at fixed levels of the indexing covariate, are also provided.}
 }
 \description{
-Plotting function for varying-coefficent single-index signal
-regression using tensor P-splines (using \code{sim_vcpsr} with \code{class simvcpsr}).
+Plotting function for varying-coefficient single-index signal
+regression using tensor product P-splines (using \code{sim_vcpsr} with \code{class simvcpsr}).
 }
-\references{
-Marx, B. D. (2015). Varying-coefficient single-index signal
-regression. \emph{Chemometrics and Intellegent Laboratory Systems}, 143, 111–121.
-
-Eilers, P.H.C. and Marx, B.D. (2021). \emph{Practical Smoothing, The Joys of
-P-splines.} Cambridge University Press.
-
-#' @examples
+\examples{
 # Load libraries
 library(fields) # Needed for plotting
 
@@ -85,6 +78,15 @@ fit <- sim_vcpsr(y, x, t_var, x_index, nsegs, bdegs, lambdas, pords,
              max_iter = max_iter, mins = mins, maxs = maxs)
 
 plot(fit, xlab = "Wavelength (nm)", ylab = "Temp C")
+
+
+}
+\references{
+Marx, B. D. (2015). Varying-coefficient single-index signal
+regression. \emph{Chemometrics and Intellegent Laboratory Systems}, 143, 111–121.
+
+Eilers, P.H.C. and Marx, B.D. (2021). \emph{Practical Smoothing, The Joys of
+P-splines.} Cambridge University Press.
 }
 \author{
 Paul Eilers and Brian Marx

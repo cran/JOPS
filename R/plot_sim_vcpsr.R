@@ -1,7 +1,7 @@
 #' Plotting function for \code{sim_vcpsr}
 #'
-#' @description Plotting function for varying-coefficent single-index signal
-#' regression using tensor P-splines (using \code{sim_vcpsr} with \code{class simvcpsr}).
+#' @description Plotting function for varying-coefficient single-index signal
+#' regression using tensor product P-splines (using \code{sim_vcpsr} with \code{class simvcpsr}).
 #'
 #' @import graphics
 #'
@@ -12,7 +12,7 @@
 #' @param Resol resolution for plotting, default \code{Resol = 100}.
 #'
 #' @return
-#' \item{Plot}{a plot of the estimated 2D P-spline signal coefficent surface along with the companion plot of the estimated
+#' \item{Plot}{a plot of the estimated 2D P-spline signal coefficient surface along with the companion plot of the estimated
 #' 2D P-spline varying link function surface. Slices of these plots, at fixed levels of the indexing covariate, are also provided.}
 #'
 #' @author Paul Eilers and Brian Marx
@@ -21,7 +21,7 @@
 #' @references Eilers, P.H.C. and Marx, B.D. (2021). \emph{Practical Smoothing, The Joys of
 #' P-splines.} Cambridge University Press.
 #'
-#' #' @examples
+#' @examples
 #' # Load libraries
 #' library(fields) # Needed for plotting
 #'
@@ -121,7 +121,7 @@ plot.simvcpsr <- function(x,..., xlab = " ", ylab = " ",
   )
 
   matplot(seq(Pars1[1], Pars1[2], length = Resol), A_hatm[, seq(1, Resol, length = 6)],
-    type = "l", col = (1:6), lty = c(1:6), ylab = " ", xlab = xlab,
+    type = "l", col = (1:6),  ylab = " ", xlab = xlab,
     main = "Coef slices, by indexing variable"
   )
   abline(0, 0)
@@ -139,10 +139,12 @@ plot.simvcpsr <- function(x,..., xlab = " ", ylab = " ",
     XYpred = cbind(as.vector(oeta), as.vector(ot))
   )
   fit_matrix <- matrix(teta$pred, Resol, Resol, byrow = TRUE)
+
+  col =
   image.plot(oeta[1, ], ot[, 1], fit_matrix, xlab = "Linear predictor", ylab = ylab, main = "Link surface")
   matplot(eta_index_, fit_matrix[, seq(1, Resol, length = 6)],
     type = "l", col = (1:6),
-    lty = c(1:6), ylab = " ", xlab = "Linear predictor", main = "Link slices"
+     ylab = " ", xlab = "Linear predictor", main = "Link slices"
   )
   abline(0, 1, lty = 2, col = 1, lwd = 2)
 }

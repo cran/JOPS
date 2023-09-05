@@ -135,7 +135,7 @@
       if(family == 'gaussian' && link == 'identity'){
               d_coef = 0
               }
-      print(c(ii, d_coef))
+      # print(c(ii, d_coef))
       if (d_coef < 1e-006) {
         break
       }

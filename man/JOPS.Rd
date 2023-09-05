@@ -1,5 +1,6 @@
 \name{JOPS}
 \alias{JOPS}
+\alias{JOPS-package}
 \docType{package}
 
 \title{Joys of P-Splines}

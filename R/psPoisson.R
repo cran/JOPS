@@ -54,7 +54,7 @@
 #' library(boot)
 #'
 #' # Extract the data
-#' Count <- hist(coal$date, breaks = c(1851:1963), plot = FALSE)$counts
+#' Count <- hist(boot::coal$date, breaks = c(1851:1963), plot = FALSE)$counts
 #' Year <- c(1851:1962)
 #' xl <- min(Year)
 #' xr <- max(Year)
