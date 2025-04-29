@@ -39,14 +39,13 @@ of (unfolded) estimated P-spline coefficients.}
 }
 \description{
 ps2DNormal is used to smooth scattered
-(normal) data, with aniosotripic penalization of
+(normal) data, with anisotropic penalization of
 tensor product P-splines.
 }
 \details{
 Support functions needed: \code{pspline_fitter}, \code{bbase}, and \code{pspline_2dchecker}.
 }
 \examples{
-library(SemiPar)
 library(fields)
 library(spam)
 library(JOPS)

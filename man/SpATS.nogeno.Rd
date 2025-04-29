@@ -19,7 +19,7 @@ SpATS.nogeno(
 \arguments{
 \item{response}{a character string with the name of the variable that contains the response variable of interest.}
 
-\item{spatial}{a right hand \code{\link{formula}} object specifying the spatial P-Spline model. See \code{\link{SAP}} and \code{\link{PSANOVA}} for more details about how to specify the spatial trend.}
+\item{spatial}{a right hand \code{\link{formula}} object specifying the spatial P-Spline model. See \code{\link[SpATS]{SAP}} and \code{\link[SpATS]{PSANOVA}} for more details about how to specify the spatial trend.}
 
 \item{fixed}{an optional right hand \code{\link{formula}} object specifying the fixed effects.}
 
@@ -42,7 +42,7 @@ A list with the following components:
 \item{model}{a list with the model components: response, spatial, fixed and/or random.}
 \item{fitted}{a numeric vector with the fitted values.}
 \item{residuals}{a numeric vector with deviance residuals.}
-\item{psi}{a two-length vector with the values of the dispersion parameters at convergence. For Gaussian responses both elements coincide, being the (REML) estimate of dispersion parameter. For non-Gaussian responses, the result depends on the argument \code{update.psi} of the \code{\link{controlSpATS}} function. If this argument was specified to \code{FALSE} (the default), the first component of the vector corresponds to the default value used for the dispersion parameter (usually 1). The second element, correspond to the (REML) estimate of the dispersion parameter at convergence. If the argument \code{update.psi} was specified to \code{TRUE}, both components coincide (as in the Gaussian case).}
+\item{psi}{a two-length vector with the values of the dispersion parameters at convergence. For Gaussian responses both elements coincide, being the (REML) estimate of dispersion parameter. For non-Gaussian responses, the result depends on the argument \code{update.psi} of the \code{\link[SpATS]{controlSpATS}} function. If this argument was specified to \code{FALSE} (the default), the first component of the vector corresponds to the default value used for the dispersion parameter (usually 1). The second element, correspond to the (REML) estimate of the dispersion parameter at convergence. If the argument \code{update.psi} was specified to \code{TRUE}, both components coincide (as in the Gaussian case).}
 \item{var.comp}{a numeric vector with the (REML) variance component estimates. This vector contains the variance components associated with the spatial trend, as well as those related with the random model terms.}
 \item{eff.dim}{a numeric vector with the estimated effective dimension (or effective degrees of freedom) for each model component (spatial, fixed and/or random).}
 \item{dim}{a numeric vector with the (model) dimension of each model component (spatial, fixed and/or random). This value corresponds to the number of parameters to be estimated.}
@@ -58,11 +58,10 @@ A list with the following components:
 Two-dimensional smoothing of scattered data points with tensor product P-splines.
 }
 \details{
-This function is a modified version of the function  \code{\link{SpATS}} in the package \code{SpATS}. The difference is that genotypes have been removed.
+This function is a modified version of the function  \code{\link[SpATS]{SpATS}} in the package \code{SpATS}. The difference is that genotypes have been removed.
 }
 \examples{
 # Get the data
-library(SemiPar)
 data(ethanol)
 
 # Fit the PS-ANOVA model

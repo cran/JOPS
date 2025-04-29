@@ -3,7 +3,7 @@
 #' @description Two-dimensional smoothing of scattered data points with tensor product P-splines.
 #'
 #' @param response a character string with the name of the variable that contains the response variable of interest.
-#' @param spatial a right hand \code{\link{formula}} object specifying the spatial P-Spline model. See \code{\link{SAP}} and \code{\link{PSANOVA}} for more details about how to specify the spatial trend.
+#' @param spatial a right hand \code{\link{formula}} object specifying the spatial P-Spline model. See \code{\link[SpATS]{SAP}} and \code{\link[SpATS]{PSANOVA}} for more details about how to specify the spatial trend.
 #' @param fixed an optional right hand \code{\link{formula}} object specifying the fixed effects.
 #' @param random an optional right hand \code{\link{formula}} object specifying the random effects. Currently, only sets of independent and identically distributed random effects can be incorporated.
 #' @param data a data frame containing the variables.
@@ -18,7 +18,7 @@
 #' \item{model}{a list with the model components: response, spatial, fixed and/or random.}
 #' \item{fitted}{a numeric vector with the fitted values.}
 #' \item{residuals}{a numeric vector with deviance residuals.}
-#' \item{psi}{a two-length vector with the values of the dispersion parameters at convergence. For Gaussian responses both elements coincide, being the (REML) estimate of dispersion parameter. For non-Gaussian responses, the result depends on the argument \code{update.psi} of the \code{\link{controlSpATS}} function. If this argument was specified to \code{FALSE} (the default), the first component of the vector corresponds to the default value used for the dispersion parameter (usually 1). The second element, correspond to the (REML) estimate of the dispersion parameter at convergence. If the argument \code{update.psi} was specified to \code{TRUE}, both components coincide (as in the Gaussian case).}
+#' \item{psi}{a two-length vector with the values of the dispersion parameters at convergence. For Gaussian responses both elements coincide, being the (REML) estimate of dispersion parameter. For non-Gaussian responses, the result depends on the argument \code{update.psi} of the \code{\link[SpATS]{controlSpATS}} function. If this argument was specified to \code{FALSE} (the default), the first component of the vector corresponds to the default value used for the dispersion parameter (usually 1). The second element, correspond to the (REML) estimate of the dispersion parameter at convergence. If the argument \code{update.psi} was specified to \code{TRUE}, both components coincide (as in the Gaussian case).}
 #' \item{var.comp}{a numeric vector with the (REML) variance component estimates. This vector contains the variance components associated with the spatial trend, as well as those related with the random model terms.}
 #' \item{eff.dim}{a numeric vector with the estimated effective dimension (or effective degrees of freedom) for each model component (spatial, fixed and/or random).}
 #' \item{dim}{a numeric vector with the (model) dimension of each model component (spatial, fixed and/or random). This value corresponds to the number of parameters to be estimated.}
@@ -30,7 +30,7 @@
 #' \item{terms}{a list with the model terms: response, spatial, fixed and/or random. The information provided here is useful for printing and prediction purposes.}
 #' \item{vcov}{inverse of the coefficient matrix of the mixed models equations. The inverse is needed for the computation of standard errors. For computational issues, the inverse is returned as a list: C22_inv corresponds to the coefficient matrix associated with the spatial, the fixed and the random components.}
 #'
-#' @details This function is a modified version of the function  \code{\link{SpATS}} in the package \code{SpATS}. The difference is that genotypes have been removed.
+#' @details This function is a modified version of the function  \code{\link[SpATS]{SpATS}} in the package \code{SpATS}. The difference is that genotypes have been removed.
 #'
 #' @author  Maria-Xose Rodriguez-Alvarez and Paul Eilers
 #'
@@ -40,7 +40,6 @@
 #'
 #' @examples
 #' # Get the data
-#' library(SemiPar)
 #' data(ethanol)
 #'
 #' # Fit the PS-ANOVA model

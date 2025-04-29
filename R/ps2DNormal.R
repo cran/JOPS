@@ -1,7 +1,7 @@
 #' Two-dimensional smoothing scattered (normal) data using P-splines.
 #'
 #' @description ps2DNormal is used to smooth scattered
-#' (normal) data, with aniosotripic penalization of
+#' (normal) data, with anisotropic penalization of
 #' tensor product P-splines.
 #'
 #'
@@ -41,7 +41,6 @@
 #' @import stats
 #'
 #' @examples
-#' library(SemiPar)
 #' library(fields)
 #' library(spam)
 #' library(JOPS)

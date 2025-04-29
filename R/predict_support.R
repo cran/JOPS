@@ -160,7 +160,6 @@ predict.pssignal = function(object,..., X_pred, type = "mu"){
 #' @references Eilers, P.H.C. and Marx, B.D. (2021). \emph{Practical Smoothing, The Joys of
 #' P-splines.} Cambridge University Press.
 #' @examples
-#' library(SemiPar)
 #' library(fields)
 #' library(spam)
 #' library(JOPS)

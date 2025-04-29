@@ -25,7 +25,6 @@ Plotting function for 2D P-spline smooothing
 (using \code{ps2DNormal} with \code{class ps2dnormal}).
 }
 \examples{
-library(SemiPar)
 library(fields)
 library(spam)
 library(JOPS)

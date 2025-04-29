@@ -19,7 +19,6 @@
 #' Twenty years of P-splines, \emph{SORT}, 39(2): 149-186.
 #'
 #' @examples
-#' library(SemiPar)
 #' library(fields)
 #' library(spam)
 #' library(JOPS)

@@ -23,7 +23,6 @@ Prediction function which returns linear
  with \code{class ps2dnormal}).
 }
 \examples{
-library(SemiPar)
 library(fields)
 library(spam)
 library(JOPS)

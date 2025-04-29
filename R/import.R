@@ -1,4 +1,3 @@
-#' @import SemiPar
 #' @import SpATS
 #' @import MASS
 #' @import rpart
